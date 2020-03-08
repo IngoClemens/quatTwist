@@ -1,0 +1,88 @@
+// ---------------------------------------------------------------------
+// quatTwistAddMenuItems.mel
+//
+// Add the menu items for the node to the contraints menus.
+//
+// ---------------------------------------------------------------------
+
+global proc quatTwistDeleteMenuItems()
+{
+    global string $gQuatTwistMenuItems[];
+    deleteUI $gQuatTwistMenuItems;
+    clear $gQuatTwistMenuItems;
+}
+
+
+global proc quatTwistAddMenuItems()
+{
+    global string $gMainConstraintsMenu;
+    global string $gRigConstraintsMenu;
+    global string $gQuatTwistMenuItems[];
+
+    source quatTwistPerformSetRest;
+
+    string $menus[] = {$gMainConstraintsMenu, $gRigConstraintsMenu};
+
+    string $items[];
+
+    for ($menu in $menus)
+    {
+        AniConstraintsMenu $menu;
+
+        if (!`menu -query -numberOfItems $menu` || `menu -query -label $menu` != "Constrain")
+            error "Error creating quatTwist menu items.";
+        else
+        {
+            setParent -menu $menu;
+            $items[size($items)] = `menuItem -divider 1
+                                             -dividerLabel "QuatTwist"`;
+            $items[size($items)] = `menuItem -label "QuatTwist"
+                                             -annotation "Create a new quatTwist node for the selection"
+                                             -image "quatTwist.svg"
+                                             -command "createQuatTwist 0"`;
+            $items[size($items)] = `menuItem -optionBox 1
+                                             -annotation "Create a new quatTwist node for the selection"
+                                             -command "createQuatTwist 1"`;
+            $items[size($items)] = `menuItem -label "Set Rest Orientation"
+                                             -annotation "Set the rest orientation for the selection"
+                                             -command "quatTwistSetRest"`;
+            $items[size($items)] = `menuItem -label "Delete QuatTwist"
+                                             -annotation "Delete the quatTwist node and all connected segment nodes"
+                                             -command "quatTwistDelete"`;
+            $items[size($items)] = `menuItem -divider 1`;
+            $items[size($items)] = `menuItem -label "Reset Twist"
+                                             -annotation "Reset the twist for the selection"
+                                             -command "quatTwistResetTwist"`;
+        }
+    }
+
+    $gQuatTwistMenuItems = $items;
+}
+
+// ---------------------------------------------------------------------
+// MIT License
+//
+// Copyright (c) 2020 Ingo Clemens, brave rabbit
+// quatTwist is under the terms of the MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// Author: Ingo Clemens    www.braverabbit.com
+// ---------------------------------------------------------------------

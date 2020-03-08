@@ -1,0 +1,169 @@
+// ---------------------------------------------------------------------
+// quatTwistPerformCreate.mel
+//
+// Create the quatTwist setup.
+//
+// ---------------------------------------------------------------------
+
+proc string newAttributeName( string $node,
+                              string $attr )
+{
+    if (!`attributeQuery -exists -node $node $attr`)
+        return $attr;
+
+    string $newAttr;
+    int $cancel;
+    int $count = 1;
+    while (!$cancel)
+    {
+        $newAttr = $attr + $count;
+        if (!`attributeQuery -exists -node $node $newAttr`)
+            $cancel = 1;
+        $count ++;
+    }
+    return $newAttr;
+}
+
+
+proc createTwistSegments( string $transform,
+                          string $reader,
+                          string $type,
+                          int $count,
+                          int $addGeo )
+{
+    string $rel[] = `listRelatives -fullPath -children -type "joint" $transform`;
+
+    if (!size($rel))
+        $rel = `listRelatives -fullPath -children -type "transform" $transform`;
+
+    if (size($rel))
+    {
+        string $axis = "x";
+        int $axisId = `getAttr ($reader + ".axis")`;
+        if ($axisId == 1)
+            $axis = "y";
+        else if ($axisId == 2)
+            $axis = "z";
+
+        float $offset = `getAttr ($rel[0] + ".t" + $axis)`;
+        $offset = $offset / $count;
+
+        float $twistPos = $offset * 0.5;
+
+        string $grp = `eval("createNode transform")`;
+        $grp = `rename $grp ($transform + "_twist_grp")`;
+
+        delete(`pointConstraint $transform $grp`);
+        delete(`orientConstraint $transform $grp`);
+
+        parent $grp $transform;
+
+        for ($i = 0; $i < $count; $i ++)
+        {
+            string $node = `eval("createNode " + $type)`;
+            $node = `rename $node ($transform + "_twist_" + $i)`;
+            parent $node $grp;
+            delete(`pointConstraint $transform $node`);
+            delete(`orientConstraint $transform $node`);
+            setAttr ($node + ".t" + $axis) $twistPos;
+            $twistPos += $offset;
+            connectAttr -force ($reader + ".twistSegmentOut[" + $i + "]") ($node + ".r" + $axis);
+            if ($addGeo)
+            {
+                string $cube[] = `polyCube -width (abs($offset))
+                                           -height (abs($offset))
+                                           -depth (abs($offset))
+                                           -constructionHistory 0`;
+                delete(`pointConstraint $node $cube[0]`);
+                delete(`orientConstraint $node $cube[0]`);
+                parent $cube[0] $node;
+                rename $cube[0] ($node + "_geo");
+            }
+        }
+    }
+}
+
+
+global proc quatTwistPerformCreate( string $trans1,
+                                    string $trans2,
+                                    string $attr,
+                                    int $axis,
+                                    int $invert,
+                                    int $segments,
+                                    string $type,
+                                    int $count,
+                                    int $reverse,
+                                    int $addGeo )
+{
+    string $sel[] = `ls -selection -transforms`;
+    if (!size($sel))
+        return;
+
+    for ($s in $sel)
+    {
+        string $reader = `createNode quatTwist`;
+        connectAttr -force ($s + ".worldMatrix[0]") ($reader + ".inputMatrix");
+
+        setAttr ($reader + ".segmentCount") $count;
+        setAttr ($reader + ".axis") ($axis - 1);
+        setAttr ($reader + ".invertTwist") $invert;
+        setAttr ($reader + ".reverseSegments") $reverse;
+
+        $reader = `rename $reader ($s + "_quatTwist")`;
+
+        quatTwistPerformSetRest $s $reader;
+
+        if ($segments)
+            createTwistSegments $s $reader $type $count $addGeo;
+
+        string $nodes[];
+        if ($trans1 == "" && $trans2 == "")
+            $nodes[0] = $s;
+
+        if ($trans1 != "")
+            $nodes[size($nodes)] = $trans1;
+
+        if ($trans2 != "")
+            $nodes[size($nodes)] = $trans2;
+
+        for ($n = 0; $n < size($nodes); $n ++)
+        {
+            string $newAttr = newAttributeName($nodes[$n], "quatTwist");
+            addAttr -longName $newAttr -attributeType doubleAngle -keyable 1 $nodes[$n];
+            connectAttr -force ($nodes[$n] + "." + $newAttr) ($reader + ".twistInput[" + $n + "]");
+        }
+
+        if ($attr != "")
+            connectAttr -f $attr ($reader + ".transformIndex");
+    }
+
+    select -r $sel;
+}
+
+// ---------------------------------------------------------------------
+// MIT License
+//
+// Copyright (c) 2020 Ingo Clemens, brave rabbit
+// quatTwist is under the terms of the MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// Author: Ingo Clemens    www.braverabbit.com
+// ---------------------------------------------------------------------

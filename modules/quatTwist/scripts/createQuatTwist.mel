@@ -1,0 +1,330 @@
+// ---------------------------------------------------------------------
+// createQuatTwist.mel
+//
+// The option box for the quatTwist node .
+//
+// ---------------------------------------------------------------------
+
+proc setOptionVars( int $forceFactorySettings )
+{
+    if ($forceFactorySettings || !`optionVar -exists quatTwistTransform1`)
+        optionVar -stringValue quatTwistTransform1 "";
+    if ($forceFactorySettings || !`optionVar -exists quatTwistTransform2`)
+        optionVar -stringValue quatTwistTransform2 "";
+    if ($forceFactorySettings || !`optionVar -exists quatTwistSwitchAttribute`)
+        optionVar -stringValue quatTwistSwitchAttribute "";
+    if ($forceFactorySettings || !`optionVar -exists quatTwistAxis`)
+        optionVar -stringValue quatTwistAxis 1;
+    if ($forceFactorySettings || !`optionVar -exists quatTwistCreateSegments`)
+        optionVar -stringValue quatTwistCreateSegments 0;
+    if ($forceFactorySettings || !`optionVar -exists quatTwistSegmentNodeType`)
+        optionVar -stringValue quatTwistSegmentNodeType 1;
+    if ($forceFactorySettings || !`optionVar -exists quatTwistSegmentCount`)
+        optionVar -stringValue quatTwistSegmentCount 1;
+    if ($forceFactorySettings || !`optionVar -exists quatTwistInvertTwist`)
+        optionVar -stringValue quatTwistInvertTwist 0;
+    if ($forceFactorySettings || !`optionVar -exists quatTwistReverseSegments`)
+        optionVar -stringValue quatTwistReverseSegments 0;
+    if ($forceFactorySettings || !`optionVar -exists quatTwistAddGeo`)
+        optionVar -stringValue quatTwistAddGeo 0;
+}
+
+
+global proc quatTwistPerformCreateSetup( string $parent,
+                                         int $forceFactorySettings )
+{
+    setOptionVars($forceFactorySettings);
+    setParent $parent;
+    textFieldButtonGrp -edit
+                       -text `optionVar -query quatTwistTransform1`
+                       quatTwistTransform1Field;
+    textFieldButtonGrp -edit
+                       -text `optionVar -query quatTwistTransform2`
+                       quatTwistTransform2Field;
+    textFieldButtonGrp -edit
+                       -text `optionVar -query quatTwistSwitchAttribute`
+                       quatTwistSwitchAttributeField;
+
+    int $value = `optionVar -query quatTwistAxis`;
+    radioButtonGrp -edit
+                   -select $value
+                   quatTwistAxisRadio;
+
+    $value = `optionVar -query quatTwistCreateSegments`;
+    checkBoxGrp -edit
+                -value1 $value
+                quatTwistCreateTwistSegmentsCheck;
+
+    $value = `optionVar -query quatTwistSegmentNodeType`;
+    radioButtonGrp -edit
+                   -select $value
+                   quatTwistSegmentNodeTypeRadio;
+
+    $value = `optionVar -query quatTwistSegmentCount`;
+    intFieldGrp -edit
+                -value1 $value
+                quatTwistSegmentCountField;
+
+    $value = `optionVar -query quatTwistInvertTwist`;
+    checkBoxGrp -edit
+                -value1 $value
+                quatTwistInvertTwistCheck;
+
+    $value = `optionVar -query quatTwistReverseSegments`;
+    checkBoxGrp -edit
+                -value1 $value
+                quatTwistReverseSegmentsCheck;
+
+    $value = `optionVar -query quatTwistAddGeo`;
+    checkBoxGrp -edit
+                -value1 $value
+                quatTwistAddGeoCheck;
+}
+
+
+global proc quatTwistPerformCreateCallback ( string $parent,
+                                             int $doIt)
+{
+    setParent $parent;
+    optionVar -stringValue quatTwistTransform1
+        `textFieldButtonGrp -query -text quatTwistTransform1Field`;
+    optionVar -stringValue quatTwistTransform2
+        `textFieldButtonGrp -query -text quatTwistTransform2Field`;
+    optionVar -stringValue quatTwistSwitchAttribute
+        `textFieldButtonGrp -query -text quatTwistSwitchAttributeField`;
+    optionVar -intValue quatTwistAxis
+        `radioButtonGrp -query -select quatTwistAxisRadio`;
+    optionVar -intValue quatTwistCreateSegments
+        `checkBoxGrp -query -value1 quatTwistCreateTwistSegmentsCheck`;
+    optionVar -intValue quatTwistSegmentNodeType
+        `radioButtonGrp -query -select quatTwistSegmentNodeTypeRadio`;
+    optionVar -intValue quatTwistSegmentCount
+        `intFieldGrp -query -value1 quatTwistSegmentCountField`;
+    optionVar -intValue quatTwistInvertTwist
+        `checkBoxGrp -query -value1 quatTwistInvertTwistCheck`;
+    optionVar -intValue quatTwistReverseSegments
+        `checkBoxGrp -query -value1 quatTwistReverseSegmentsCheck`;
+    optionVar -intValue quatTwistAddGeo
+        `checkBoxGrp -query -value1 quatTwistAddGeoCheck`;
+
+    if ($doIt)
+    {
+        createQuatTwist 0;
+        string $tmpCmd = "createQuatTwist 0 ";
+        addToRecentCommandQueue $tmpCmd "Create a new quatTwist node for the selection";
+    }
+}
+
+
+proc quatTwistOptions()
+{
+    global int $gOptionBoxTemplateFrameSpacing;
+
+    string $commandName = "quatTwistPerformCreate";
+    string $callback = $commandName + "Callback";
+    string $setup = $commandName + "Setup";
+
+    setOptionVars 0;
+
+    string $layout = getOptionBox();
+    setParent $layout;
+
+    setOptionBoxCommandName($commandName);
+
+    setUITemplate -pushTemplate OptionBoxTemplate;
+
+    string $parent = `formLayout`;
+
+    string $settingsFrame =
+        `frameLayout -label "Settings"`;
+            columnLayout;
+                textFieldButtonGrp
+                    -label "Transform 1"
+                    -buttonLabel "Select"
+                    -text ""
+                    -buttonCommand "quatTwistGetNode quatTwistTransform1Field 0"
+                    quatTwistTransform1Field;
+                textFieldButtonGrp
+                    -label "Transform 2"
+                    -buttonLabel "Select"
+                    -text ""
+                    -buttonCommand "quatTwistGetNode quatTwistTransform2Field 0"
+                    quatTwistTransform2Field;
+                textFieldButtonGrp
+                    -label "Switch Attribute"
+                    -buttonLabel "Select"
+                    -text ""
+                    -buttonCommand "quatTwistGetNode quatTwistSwitchAttributeField 1"
+                    quatTwistSwitchAttributeField;
+                separator -height 10;
+                radioButtonGrp
+                    -label "Axis"
+                    -numberOfRadioButtons 3
+                    -label1 "X"
+                    -label2 "Y"
+                    -label3 "Z"
+                    -select 1
+                    quatTwistAxisRadio;
+                checkBoxGrp
+                    -label ""
+                    -label1 "Invert Twist"
+                    -numberOfCheckBoxes 1
+                    -value1 0
+                    quatTwistInvertTwistCheck;
+                separator -height 10;
+                checkBoxGrp
+                    -label ""
+                    -label1 "Create Twist Segments"
+                    -numberOfCheckBoxes 1
+                    -value1 0
+                    quatTwistCreateTwistSegmentsCheck;
+                radioButtonGrp
+                    -label "Segment Node Type"
+                    -numberOfRadioButtons 2
+                    -label1 "Joint"
+                    -label2 "Transform"
+                    -select 1
+                    quatTwistSegmentNodeTypeRadio;
+                intFieldGrp
+                    -label "Count"
+                    -value1 1
+                    quatTwistSegmentCountField;
+                checkBoxGrp
+                    -label ""
+                    -label1 "Reverse Segments"
+                    -numberOfCheckBoxes 1
+                    -value1 0
+                    quatTwistReverseSegmentsCheck;
+                separator -height 10;
+                checkBoxGrp
+                    -label ""
+                    -label1 "Create Geometry"
+                    -numberOfCheckBoxes 1
+                    -value1 0
+                    quatTwistAddGeoCheck;
+            setParent ..;
+        setParent $parent;
+    setParent ..;
+
+    formLayout -edit
+               -attachForm $settingsFrame "top" $gOptionBoxTemplateFrameSpacing
+               -attachForm $settingsFrame "left" $gOptionBoxTemplateFrameSpacing
+               -attachForm $settingsFrame "right" $gOptionBoxTemplateFrameSpacing
+               -attachNone $settingsFrame "bottom"
+               $parent;
+
+    setUITemplate -popTemplate;
+
+    string $applyBtn = getOptionBoxApplyBtn();
+    button -edit -label "Apply" -command ($callback + " " + $parent + " " + 1) $applyBtn;
+
+    string $applyAndCloseBtn = getOptionBoxApplyAndCloseBtn();
+    button -edit -label "Apply And Close" $applyAndCloseBtn;
+
+    string $saveBtn = getOptionBoxSaveBtn();
+    button -edit -command ($callback + " " + $parent + " " + 0 + " " + "; hideOptionBox") $saveBtn;
+
+    string $resetBtn = getOptionBoxResetBtn();
+    button -edit -command ($setup + " " + $parent + " " + 1) $resetBtn;
+
+    setOptionBoxTitle("QuatTwist Options");
+    setOptionBoxHelpTag("CreateNewQuatTwistNodeForTheSelection");
+
+    eval (($setup + " " + $parent + " " + 0));
+
+    showOptionBox();
+}
+
+
+proc string assembleCmd()
+{
+    quatTwistSetOptionVars 0;
+
+    string $cmd = "quatTwistPerformCreate ";
+
+    $cmd += "\"" + `optionVar -query quatTwistTransform1` + "\"" + " ";
+    $cmd += "\"" + `optionVar -query quatTwistTransform2` + "\"" + " ";
+    $cmd += "\"" + `optionVar -query quatTwistSwitchAttribute` + "\"" + " ";
+    $cmd += `optionVar -query quatTwistAxis` + " ";
+    $cmd += `optionVar -query quatTwistInvertTwist` + " ";
+    $cmd += `optionVar -query quatTwistCreateSegments` + " ";
+    string $type = "joint";
+    if (`optionVar -query quatTwistSegmentNodeType` == 2)
+        $type = "transform";
+    $cmd += "\"" + $type + "\" ";
+    $cmd += `optionVar -query quatTwistSegmentCount` + " ";
+    $cmd += `optionVar -query quatTwistReverseSegments` + " ";
+    $cmd += `optionVar -query quatTwistAddGeo`;
+
+    return $cmd;
+}
+
+
+global proc quatTwistGetNode( string $field,
+                              int $attribute )
+{
+    global string $gChannelBoxName;
+
+    string $sel[] = `ls -selection -transforms`;
+    if (!size($sel))
+        return;
+
+    if (!$attribute)
+        textFieldButtonGrp -edit -text $sel[0] $field;
+    else
+    {
+        string $attr[] = `channelBox -query -selectedMainAttributes $gChannelBoxName`;
+        if (size($attr))
+            textFieldButtonGrp -edit -text ($sel[0] + "." + $attr[0]) $field;
+    }
+}
+
+
+global proc string createQuatTwist( int $option )
+{
+    if (!`pluginInfo -query -loaded quatTwist`)
+        evalDeferred("loadPlugin quatTwist");
+
+    string $cmd = "";
+    switch ($option) {
+        case 0:
+            $cmd = `assembleCmd`;
+            eval $cmd;
+            break;
+        case 1:
+            quatTwistOptions;
+            break;
+        case 2:
+            $cmd = `assembleCmd`;
+            break;
+    }
+    return $cmd;
+}
+
+// ---------------------------------------------------------------------
+// MIT License
+//
+// Copyright (c) 2020 Ingo Clemens, brave rabbit
+// quatTwist is under the terms of the MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// Author: Ingo Clemens    www.braverabbit.com
+// ---------------------------------------------------------------------
