@@ -238,7 +238,7 @@ proc quatTwistOptions()
 
 proc string assembleCmd()
 {
-    quatTwistSetOptionVars 0;
+    setOptionVars 0;
 
     string $cmd = "quatTwistPerformCreate ";
 
