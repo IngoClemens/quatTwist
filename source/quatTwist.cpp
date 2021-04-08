@@ -3,7 +3,7 @@
 //  quatTwist.cpp
 //
 //  Created by ingo on 10/10/16.
-//  Copyright (c) 2016 Ingo Clemens. All rights reserved.
+//  Copyright (c) 2021 Ingo Clemens. All rights reserved.
 //
 // ---------------------------------------------------------------------
 
@@ -823,7 +823,7 @@ MStatus uninitializePlugin(MObject obj)
 // ---------------------------------------------------------------------
 // MIT License
 //
-// Copyright (c) 2020 Ingo Clemens, brave rabbit
+// Copyright (c) 2021 Ingo Clemens, brave rabbit
 // quatTwist is under the terms of the MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining
